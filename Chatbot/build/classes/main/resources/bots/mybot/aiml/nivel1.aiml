@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aiml version="2.0">
+
+<!-- regla 0 -->
+<category>
+<pattern>^ Gracias ^</pattern>
+<template>
+  <random>
+    <li>De nada!</li>
+    <li>No hay de que!</li>
+  </random>
+</template>
+</category>
+
+<!-- regla 1 -->
+<category>
+<pattern>[Hola ee hey hi buenas] ^</pattern>
+<template>
+  <random>
+    <li>Hola!</li>
+    <li><think><set name="topic">saludo</set></think>Hola, que tal?</li>
+    <li>Buenas!</li>
+  </random>
+</template>
+</category>
+
+<!-- regla 2 -->
+<category>
+<pattern>^ Bien ^</pattern>
+<template>
+  <condition name="topic">
+    <li value="saludo">
+        <think><set name="topic">unknown</set></think>
+        Me alegro de oirlo
+    </li>
+    <li>
+      <think><set name="topic">pregunta</set></think>
+       El que esta bien
+     </li>
+  </condition>
+</template>
+</category>
+
+
+<category>
+<pattern>* </pattern>
+<that>El que esta bien</that>
+<template>
+  <condition name="topic">
+    <li value="pregunta">
+        <think><set name="topic">unknown</set></think>
+        Perfecto!
+    </li>
+    <li>
+      No te he entendido
+    </li>
+  </condition>
+</template>
+</category>
+
+<!-- regla 3 -->
+<category>
+<pattern>^ Me llamo *</pattern>
+<template>
+   <think><set name="nombre"><star index="2"/></set></think>
+   Hola <get name="nombre"/>!
+</template>
+</category>
+
+<category>
+<pattern>Como me llamo</pattern>
+<template>
+  <srai>CUAL ES MI NOMBRE</srai>
+</template>
+</category>
+
+<!-- regla 4 -->
+<category>
+<pattern>Cual es mi nombre</pattern>
+<template>
+  <condition name="nombre">
+    <li value="unknown"> Todavia no me lo has dicho</li>
+    <li>Tu nombre es <get name="nombre"/></li>
+  </condition>
+</template>
+</category>
+
+<category>
+<pattern>^ [Agregar crear insertar añadir incorporar] (nuevo) ^ contacto ^</pattern>
+<template>
+  Diga apellidos del contacto a agregar:
+</template>
+</category>
+
+<category>
+<pattern>* </pattern>
+<that>Diga apellidos del contacto a agregar:</that>
+<template>
+  <think>
+    <set name="apellido"><srai>ponerbarrabaja <star/></srai></set>
+    <set var="contactos"><readkeys>contactos</readkeys></set>
+    <set var="item"><srai>FINDITEM <get name="apellido"/> IN <get var="contactos"/></srai></set>
+  </think>
+  <condition var="item">
+    <li value="0">
+      Diga el nombre
+      <addtomap>
+        <name>contactos</name>
+        <key><get name="apellido"/></key>
+        <value><get name="apellido"/></value>
+      </addtomap>
+    </li>
+    <li>No es posible agregar el contacto, ya esta en mi base de datos</li>
+  </condition>
+</template>
+</category>
+
+
+<category>
+<pattern>* </pattern>
+<that>Diga el nombre</that>
+<template>
+  <addtomap>
+    <name>nombre</name>
+    <key><get name="apellido"/></key>
+    <value><srai>ponerbarrabaja <star/></srai></value>
+  </addtomap>
+  Ahora proporcione la direccion por favor
+</template>
+</category>
+
+<category>
+<pattern>* </pattern>
+<that>Ahora proporcione la direccion por favor</that>
+<template>
+  <addtomap>
+    <name>direccion</name>
+    <key><get name="apellido"/></key>
+    <value><srai>ponerbarrabaja <star/></srai></value>
+  </addtomap>
+  Ahora proporcione el numero de telefono por favor
+</template>
+</category>
+
+<category>
+<pattern>* </pattern>
+<that>Ahora proporcione el numero de telefono por favor</that>
+<template>
+  <addtomap>
+    <name>telefono</name>
+    <key><get name="apellido"/></key>
+    <value><srai>ponerbarrabaja <star/></srai></value>
+  </addtomap>
+  Nuevo contacto agregado:
+    - Apellidos: <srai>quitarespacios <get name="apellido"/></srai>
+    - Nombre: <srai>quitarespacios <map name="nombre"><get name="apellido"/></map></srai>
+    - Direccion: <srai>quitarespacios <map name="direccion"><get name="apellido"/></map></srai>
+    - Telefono: <srai>quitarespacios <map name="telefono"><get name="apellido"/></map></srai>
+
+</template>
+</category>
+
+<category>
+<pattern>Cuantos contactos (hay almacenados) (tengo) ^</pattern>
+<template>
+  <think>
+    <set var="contactos"><readkeys>contactos</readkeys></set>
+    <set var="size"><srai>COUNT <get var="contactos"/></srai></set>
+  </think>
+  <condition var="size">
+    <li value="0"> No hay contactos guardados</li>
+    <li value="1"> Hay 1 contacto</li>
+    <li> Hay <get var="size"/> contactos</li>
+  </condition>
+</template>
+</category>
+
+<category>
+<pattern>^ Lista ^ (de) ^ contactos ^</pattern>
+<template>
+  <think>
+    <set var="contactos"><readkeys>contactos</readkeys></set>
+    <set var="size"><srai>COUNT <get var="contactos"/></srai></set>
+  </think>
+  <condition var="size">
+    <li value="0"> No hay contactos guardados</li>
+    <li value="1"> El contacto almacenado es:
+        <srai>quitarespacios <get var="contactos"/></srai>
+    </li>
+    <li> Los contactos guardados son:
+        <srai>listacontactos <get var="contactos"/></srai>
+    </li>
+  </condition>
+</template>
+</category>
+
+<category>
+<pattern>[Muestra+ mostrar] (todos) (los) contactos</pattern>
+<template>
+  <think>
+    <set var="contactos"><readkeys>contactos</readkeys></set>
+    <set var="size"><srai>COUNT <get var="contactos"/></srai></set>
+  </think>
+  <condition var="size">
+    <li value="0"> No hay contactos guardados</li>
+    <li value="1"> Hay 1 contacto:
+        <srai>quitarespacios <get var="contactos"/></srai>
+    </li>
+    <li> Hay <get var="size"/> contactos:
+        <srai>listacontactos <get var="contactos"/></srai>
+    </li>
+  </condition>
+</template>
+</category>
+
+<category>
+<pattern>listacontactos *</pattern>
+<template>
+  <think>
+    <set var="size"><srai>COUNT <star/></srai></set>
+    <set var="i">0</set>
+  </think>
+  <condition var="i">
+    <li><value><get var="size"/></value></li>
+    <li><think><set var="i"><map name="successor"><get var="i"/></map></set></think><srai>quitarespacios <srai>SELECTITEM <get var="i"/> IN <star/></srai></srai>, <loop/></li>
+  </condition>
+</template>
+</category>
+
+
+<category>
+<pattern>^ [eliminar+ borrar+] ^ contacto ^</pattern>
+<template>
+  Diga el apellido
+</template>
+</category>
+
+<category>
+<pattern>* </pattern>
+<that>Diga el apellido</that>
+<template>
+  <think><set name="deletecontact"><srai>ponerbarrabaja <star/></srai></set></think>
+  Esta usted seguro ?
+</template>
+</category>
+
+<category>
+<pattern>si ^</pattern>
+<that>Esta usted seguro ^</that>
+<template>
+  <think>
+    <set var="setcontactos"><readkeys>contactos</readkeys></set>
+    <set var="item"><srai>FINDITEM <srai>ponerbarrabaja <get name="deletecontact"/></srai> IN <get var="setcontactos"/></srai></set>
+  </think>
+  <condition var="item">
+    <li value="0">
+      No existe <srai>quitarespacios <get name="deletecontact"/></srai> como contacto.
+       Existen: <srai>listacontactos <get var="setcontactos"/></srai>
+    </li>
+    <li>
+      <think>
+        <removefrommap>
+          <name>contactos</name>
+          <key><srai>ponerbarrabaja <get name="deletecontact"/></srai></key>
+        </removefrommap>
+        <removefrommap>
+          <name>direccion</name>
+          <key><srai>ponerbarrabaja <get name="deletecontact"/></srai></key>
+        </removefrommap>
+        <removefrommap>
+          <name>nombre</name>
+          <key><srai>ponerbarrabaja <get name="deletecontact"/></srai></key>
+        </removefrommap>
+        <removefrommap>
+          <name>telefono</name>
+          <key><srai>ponerbarrabaja <get name="deletecontact"/></srai></key>
+        </removefrommap>
+      </think>
+      Contacto borrado de forma correcta.
+    </li>
+  </condition>
+</template>
+</category>
+
+<category>
+<pattern>no ^</pattern>
+<that>Esta usted seguro</that>
+<template>
+    Perfecto.
+</template>
+</category>
+
+
+<category>
+<pattern>^ [modificar cambiar alterar] ^ contacto ^</pattern>
+<template>
+    Cual es el apellido
+</template>
+</category>
+
+<category>
+<pattern>^ </pattern>
+<that>Cual es el apellido</that>
+<template>
+    <think>
+      <set name="modcontact"><srai>ponerbarrabaja <star/></srai></set>
+      <set var="setcontactos"><readkeys>contactos</readkeys></set>
+      <set name="item"><srai>FINDITEM <get name="modcontact"/> IN <get var="setcontactos"/></srai></set>
+    </think>
+    <condition name="item">
+      <li value="0">Dicho contacto no existe</li>
+      <li>Desea modificar la direccion o el telefono</li>
+    </condition>
+</template>
+</category>
+
+<category>
+<pattern>^ </pattern>
+<that>Desea modificar la direccion o el telefono</that>
+<template>
+  <think><set var="answer"><star/></set></think>
+  <condition var="answer">
+    <li value="telefono">
+      Cual es el nuevo numero de telefono
+    </li>
+    <li value="direccion">
+      Cual es la nueva direccion
+    </li>
+    <li>Desea modificar la direccion o el telefono</li>
+  </condition>
+</template>
+</category>
+
+<category>
+<pattern>* </pattern>
+<that>Cual es el nuevo numero de telefono</that>
+<template>
+  <think>
+    <modifymap>
+      <name>telefono</name>
+      <key><get name="modcontact"/></key>
+      <value><srai>ponerbarrabaja <star/></srai></value>
+    </modifymap>
+  </think>
+  Telefono de <srai>quitarespacios <get name="modcontact"/></srai> modificado correctamente!
+</template>
+</category>
+
+<category>
+<pattern>^ </pattern>
+<that>Cual es la nueva direccion</that>
+<template>
+  <think>
+    <modifymap>
+      <name>direccion</name>
+      <key><get name="modcontact"/></key>
+      <value><srai>ponerbarrabaja <star/></srai></value>
+    </modifymap>
+  </think>
+  Direccion de <srai>quitarespacios <get name="modcontact"/></srai> modificada correctamente!
+</template>
+</category>
+
+<category>
+<pattern>^ Cual es (el) nombre de ^ (?)</pattern>
+<template>
+  <think>
+    <set var="nombre"><srai>quitarespacios <map name="nombre"><srai>ponerbarrabaja <star index="2"/></srai></map></srai></set>
+  </think>
+  El nombre de <star index="2"/> es: <get var="nombre"/>
+</template>
+</category>
+
+<category>
+<pattern>^ Cual es (la) [direccion dirección] de ^ (?)</pattern>
+<template>
+  <think>
+    <set var="direc"><srai>quitarespacios <map name="direccion"><srai>ponerbarrabaja <star index="2"/></srai></map></srai></set>
+  </think>
+  La dirección de <star index="2"/> es: <get var="direc"/>
+</template>
+</category>
+
+<category>
+<pattern>^ Cual es (el) [telefono teléfono] de ^ (?)</pattern>
+<template>
+  <think>
+    <set var="telf"><srai>quitarespacios <map name="telefono"><srai>ponerbarrabaja <star index="2"/></srai></map></srai></set>
+  </think>
+  El teléfono de <star index="2"/> es: <get var="telf"/>
+</template>
+</category>
+
+</aiml>

@@ -1,0 +1,9 @@
+url:http://www.google.es
+name:myBot
+email:myBot@gmail.com
+gender:male
+botmaster:JC	
+organization:FR
+version:0.0.4
+
+

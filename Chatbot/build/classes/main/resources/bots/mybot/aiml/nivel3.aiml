@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aiml version="2.0">
+
+<category>
+<pattern>tengo el dia libre (?)</pattern>
+<template>
+  <think>
+      <set var="entrada"><srai>cuantos eventos tengo hoy</srai></set>
+      <condition var="entrada">
+        <li value="Ninguno"><set var="salida">Si</set></li>
+        <li><set var="salida">No</set></li>
+      </condition>
+  </think>
+  <get var="salida"/>
+</template>
+</category>
+
+<category>
+<pattern>^ (debo) (tengo) reuni+ (el) (día) (dia) * (?)</pattern>
+<template>
+  <think>
+    <set var="entrada"><star index="2"/></set>
+    <condition var="entrada">
+      <li value="HOY"><set name="fecha"><date jformat="dd/MM/yyyy"/></set></li>
+      <li value="MAÑANA"><set name="fecha"><srai>TOMORROW <date jformat="dd MM yyyy"/></srai></set></li>
+      <li>
+        <set var="entrada"><srai>formatdate <get var="entrada"/></srai></set>
+        <set name="fecha"><srai>SELECTITEM 1 in <get var="entrada"/></srai>/<srai>SELECTITEM 2 in <get var="entrada"/></srai>/<map name="anios"><srai>SELECTITEM 3 in <get var="entrada"/></srai></map></set>
+      </li>
+    </condition>
+    <set var="ncaracteres"><srai>COUNT <srai>DELETREA <get name="fecha"/></srai></srai></set>
+    <condition var="ncaracteres">
+      <li value="10">
+        <set var="bool"><srai>validdate <srai>formatdate <get name="fecha"/></srai></srai></set>
+      </li>
+      <li><set var="bool">NO</set></li>
+    </condition>
+    <set var="personas">:</set>
+    <condition var="bool">
+      <li value="YES">
+        <set var="size"><srai>cuantos eventos tengo <get var="entrada"/></srai></set>
+        <condition var="size">
+          <li value="Ninguno"><set var="salida">No tienes eventos</set></li>
+          <li>
+            <set var="i">1</set>
+            <condition var="i">
+              <li value="49"></li>
+              <li>
+                <set var="iter"><srai>quitarespacios <map name="evper"><srai>ponerbarrabaja <get name="fecha"/> <srai>quitarespacios <map name="franjatohora"><get var="i"/></map></srai></srai></map></srai></set>
+                <condition var="iter">
+                  <li value="unknown"></li>
+                  <li><set var="personas"><get var="personas"/><get var="iter"/></set></li>
+                </condition>
+                <set var="personas"><get var="personas"/></set>
+                <set var="i"><map name="successor"><get var="i"/></map></set>
+                <loop/>
+              </li>
+            </condition>
+            <set var="salida">Tienes reunión con</set>
+            <condition var="personas">
+              <li value=":">
+                <set var="personas"><get var="personas"/> Nadie</set>
+              </li>
+            </condition>
+            <set var="salida"><get var="salida"/><get var="personas"/></set>
+          </li>
+        </condition>
+      </li>
+      <li value="NO">
+        <set var="salida">Fecha incorrecta</set>
+      </li>
+    </condition>
+  </think>
+  <get var="salida"/>
+</template>
+</category>
+
+
+<category>
+<pattern>cual es el [proximo siguiente próximo] evento (del) (de) (dia) (día) * (?)</pattern>
+<template>
+  <think>
+    <set var="entrada"><star/></set>
+    <condition var="entrada">
+      <li value="HOY"><set name="fecha"><date jformat="dd/MM/yyyy"/></set></li>
+      <li value="MAÑANA"><set name="fecha"><srai>TOMORROW <date jformat="dd MM yyyy"/></srai></set></li>
+      <li>
+        <set var="entrada"><srai>formatdate <get var="entrada"/></srai></set>
+        <set name="fecha"><srai>SELECTITEM 1 in <get var="entrada"/></srai>/<srai>SELECTITEM 2 in <get var="entrada"/></srai>/<map name="anios"><srai>SELECTITEM 3 in <get var="entrada"/></srai></map></set>
+      </li>
+    </condition>
+    <set var="ncaracteres"><srai>COUNT <srai>DELETREA <get name="fecha"/></srai></srai></set>
+    <condition var="ncaracteres">
+      <li value="10">
+        <set var="bool"><srai>validdate <srai>formatdate <get name="fecha"/></srai></srai></set>
+      </li>
+      <li><set var="bool">NO</set></li>
+    </condition>
+    <condition var="bool">
+      <li value="YES">
+        <set name="eventos"><map name="evento"><get name="fecha"/></map></set>
+        <set var="i">1</set>
+        <set var="size"><srai>COUNT <get name="eventos"/></srai></set>
+        <set var="iter"><srai>SELECTITEM <get var="i"/></srai></set>
+        <condition name="eventos">
+          <li value="unknown"><set var="iter">null</set></li>
+          <li>
+            <condition var="i">
+              <li value="49"></li>
+              <li>
+                <set var="iter"><srai>TOP <get name="eventos"/></srai></set>
+                <set name="eventos"><srai>REMAIN <get name="eventos"/></srai></set>
+                <set var="i"><map name="successor"><get var="i"/></map></set>
+                <condition var="iter">
+                  <li value="null"></li>
+                  <li>
+                    <set var="lasti"><map name="predecessor"><get var="i"/></map></set>
+                    <set var="i">49</set>
+                  </li>
+                </condition>
+                <loop/>
+              </li>
+            </condition>
+        </li>
+        </condition>
+        <condition var="iter">
+          <li value="null">
+            <set var="salida">No tienes eventos</set>
+          </li>
+          <li>
+            <set var="hora"><map name="franjatohora"><get var="lasti"/></map></set>
+            <set var="hora"><srai>SELECTITEM 1 in <get var="hora"/></srai>:<srai>SELECTITEM 2 in <get var="hora"/></srai></set>
+            <set var="salida">Tienes <srai>quitarespacios <get var="iter"/></srai> a las <get var="hora"/></set>
+          </li>
+        </condition>
+      </li>
+      <li value="NO">
+        <set var="salida">Fecha incorrecta</set>
+      </li>
+    </condition>
+  </think>
+  <get var="salida"/>
+</template>
+</category>
+
+<category>
+<pattern>cual es el [ultimo último] evento (del) (de) (dia) (día) * (?)</pattern>
+<template>
+  <think>
+    <set var="entrada"><star/></set>
+    <condition var="entrada">
+      <li value="HOY"><set name="fecha"><date jformat="dd/MM/yyyy"/></set></li>
+      <li value="MAÑANA"><set name="fecha"><srai>TOMORROW <date jformat="dd MM yyyy"/></srai></set></li>
+      <li>
+        <set var="entrada"><srai>formatdate <get var="entrada"/></srai></set>
+        <set name="fecha"><srai>SELECTITEM 1 in <get var="entrada"/></srai>/<srai>SELECTITEM 2 in <get var="entrada"/></srai>/<map name="anios"><srai>SELECTITEM 3 in <get var="entrada"/></srai></map></set>
+      </li>
+    </condition>
+    <set var="ncaracteres"><srai>COUNT <srai>DELETREA <get name="fecha"/></srai></srai></set>
+    <condition var="ncaracteres">
+      <li value="10">
+        <set var="bool"><srai>validdate <srai>formatdate <get name="fecha"/></srai></srai></set>
+      </li>
+      <li><set var="bool">NO</set></li>
+    </condition>
+    <condition var="bool">
+      <li value="YES">
+        <set name="eventos"><map name="evento"><get name="fecha"/></map></set>
+        <set var="size"><srai>COUNT <get name="eventos"/></srai></set>
+        <set var="i"><get var="size"/></set>
+        <condition name="eventos">
+          <li value="unknown"><set var="iter">null</set></li>
+          <li>
+            <condition var="i">
+              <li value="0"></li>
+              <li>
+                <set var="iter"><srai>TOP <get name="eventos"/></srai></set>
+                <set name="eventos"><srai>REMAIN <get name="eventos"/></srai></set>
+                <set var="i"><map name="predecessor"><get var="i"/></map></set>
+                <condition var="iter">
+                  <li value="null"></li>
+                  <li>
+                    <set var="lasti"><map name="successor"><get var="i"/></map></set>
+                    <set var="i">1</set>
+                  </li>
+                </condition>
+                <loop/>
+              </li>
+            </condition>
+        </li>
+        </condition>
+        <condition var="iter">
+          <li value="null">
+            <set var="salida">No tienes eventos</set>
+          </li>
+          <li>
+            <set var="hora"><map name="franjatohora"><get var="lasti"/></map></set>
+            <set var="hora"><srai>SELECTITEM 1 in <get var="hora"/></srai>:<srai>SELECTITEM 2 in <get var="hora"/></srai></set>
+            <set var="salida">Tienes <srai>quitarespacios <get var="iter"/></srai> a las <get var="hora"/></set>
+          </li>
+        </condition>
+      </li>
+      <li value="NO">
+        <set var="salida">Fecha incorrecta</set>
+      </li>
+    </condition>
+  </think>
+  <get var="salida"/>
+</template>
+</category>
+
+
+<category>
+<pattern>^ ten+ ^ hueco (libre) (el) (dia) (día) * (?)</pattern>
+<template>
+  <think>
+    <set var="entrada"><star index="3"/></set>
+    <condition var="entrada">
+      <li value="HOY"><set name="fecha"><date jformat="dd/MM/yyyy"/></set></li>
+      <li value="MAÑANA"><set name="fecha"><srai>TOMORROW <date jformat="dd MM yyyy"/></srai></set></li>
+      <li>
+        <set var="entrada"><srai>formatdate <get var="entrada"/></srai></set>
+        <set name="fecha"><srai>SELECTITEM 1 in <get var="entrada"/></srai>/<srai>SELECTITEM 2 in <get var="entrada"/></srai>/<map name="anios"><srai>SELECTITEM 3 in <get var="entrada"/></srai></map></set>
+      </li>
+    </condition>
+    <set var="ncaracteres"><srai>COUNT <srai>DELETREA <get name="fecha"/></srai></srai></set>
+    <condition var="ncaracteres">
+      <li value="10">
+        <set var="bool"><srai>validdate <srai>formatdate <get name="fecha"/></srai></srai></set>
+      </li>
+      <li><set var="bool">NO</set></li>
+    </condition>
+    <condition var="bool">
+      <li value="YES">
+        <set name="eventos"><map name="evento"><get name="fecha"/></map></set>
+        <set name="iteracion">1</set>
+        <set var="size"><srai>COUNT <get name="eventos"/></srai></set>
+        <set var="iter"><srai>SELECTITEM <get name="iteracion"/> in <get name="eventos"/></srai></set>
+        <set var="in"><star index="3"/></set>
+        <condition var="in">
+          <li value="hoy">
+            <set name="iteracion"><map name="successor"><srai>getfranja <date jformat="HH mm"/></srai></map></set>
+          </li>
+          <li><set name="iteracion">1</set></li>
+        </condition>
+        <condition name="eventos">
+          <li value="unknown">
+            <set var="iter">null</set>
+          </li>
+          <li>
+            <condition name="iteracion">
+              <li value="49"><set name="iteracion"><get var="lasti"/></set></li>
+              <li>
+                <set var="iter"><srai>TOP <get name="eventos"/></srai></set>
+                <set name="eventos"><srai>REMAIN <get name="eventos"/></srai></set>
+                <set name="iteracion"><map name="successor"><get name="iteracion"/></map></set>
+                <condition var="iter">
+                  <li value="null">
+                    <set var="lasti"><map name="predecessor"><get name="iteracion"/></map></set>
+                    <set name="iteracion">49</set>
+                  </li>
+                  <li></li>
+                </condition>
+                <loop/>
+              </li>
+            </condition>
+        </li>
+        </condition>
+        <condition var="iter">
+          <li value="null">
+            <set var="hora"><map name="franjatohora"><get name="iteracion"/></map></set>
+            <set var="hora"><srai>SELECTITEM 1 in <get var="hora"/></srai>:<srai>SELECTITEM 2 in <get var="hora"/></srai></set>
+            <set var="salida">Tienes un hueco libre a las <get var="hora"/></set>
+
+          </li>
+          <li>
+            <set var="salida">No tienes huecos libres</set>
+          </li>
+        </condition>
+      </li>
+      <li value="NO">
+        <set var="salida">Fecha incorrecta</set>
+      </li>
+    </condition>
+  </think>
+  <get var="salida"/>
+</template>
+</category>
+
+
+<category>
+<pattern>^ ten+ ^ hueco (libre) (el) (dia) (día) * por (la) * (?)</pattern>
+<template>
+  <think>
+    <set var="entrada"><star index="3"/></set>
+    <condition var="entrada">
+      <li value="HOY"><set name="fecha"><date jformat="dd/MM/yyyy"/></set></li>
+      <li value="MAÑANA"><set name="fecha"><srai>TOMORROW <date jformat="dd MM yyyy"/></srai></set></li>
+      <li>
+        <set var="entrada"><srai>formatdate <get var="entrada"/></srai></set>
+        <set name="fecha"><srai>SELECTITEM 1 in <get var="entrada"/></srai>/<srai>SELECTITEM 2 in <get var="entrada"/></srai>/<map name="anios"><srai>SELECTITEM 3 in <get var="entrada"/></srai></map></set>
+      </li>
+    </condition>
+    <set var="ncaracteres"><srai>COUNT <srai>DELETREA <get name="fecha"/></srai></srai></set>
+    <condition var="ncaracteres">
+      <li value="10">
+        <set var="bool"><srai>validdate <srai>formatdate <get name="fecha"/></srai></srai></set>
+      </li>
+      <li><set var="bool">NO</set></li>
+    </condition>
+    <condition var="bool">
+      <li value="YES">
+        <set name="eventos"><map name="evento"><get name="fecha"/></map></set>
+        <set var="partedia"><star index="4"/></set>
+        <condition var="partedia">
+          <li value="mañana">
+            <set name="iteracion">11</set>
+            <set var="horafinal">27</set>
+          </li>
+          <li value="tarde">
+            <set name="iteracion">27</set>
+            <set var="horafinal">43</set>
+          </li>
+          <li value="noche">
+            <set name="iteracion">43</set>
+            <set var="horafinal">49</set>
+          </li>
+        </condition>
+        <set var="iter"><srai>SELECTITEM <get name="iteracion"/> in <get name="eventos"/></srai></set>
+        <set var="lasti"><map name="successor"><srai>getfranja <get name="iteracion"/></srai></map></set>
+        <condition name="eventos">
+          <li value="unknown"><set var="iter">null</set></li>
+          <li>
+            <condition name="iteracion">
+              <li><value><get var="horafinal"/></value><set name="iteracion"><get var="lasti"/></set></li>
+              <li>
+                <set var="iter"><srai>SELECTITEM <get var="i"/> in <get name="eventos"/></srai></set>
+                <set name="iteracion"><map name="successor"><get name="iteracion"/></map></set>
+                <condition var="iter">
+                  <li value="null">
+                    <set var="lasti"><map name="predecessor"><get name="iteracion"/></map></set>
+                    <set name="iteracion"><get var="horafinal"/></set>
+                  </li>
+                  <li></li>
+                </condition>
+                <loop/>
+              </li>
+            </condition>
+        </li>
+        </condition>
+        <condition var="iter">
+          <li value="null">
+            <set var="hora"><map name="franjatohora"><get name="iteracion"/></map></set>
+            <set var="hora"><srai>SELECTITEM 1 in <get var="hora"/></srai>:<srai>SELECTITEM 2 in <get var="hora"/></srai></set>
+            <set var="salida">Tienes un hueco libre a las <get var="hora"/></set>
+          </li>
+          <li>
+            <set var="salida">No tienes huecos libres</set>
+          </li>
+        </condition>
+      </li>
+      <li value="NO">
+        <set var="salida">Fecha incorrecta</set>
+      </li>
+    </condition>
+  </think>
+  <get var="salida"/>
+</template>
+</category>
+
+<category>
+<pattern>Alguna (otra) alternativa (?)</pattern>
+<that>Tienes un hueco libre a las *</that>
+<template>
+  <think>
+    <set name="iteracion"><map name="successor"><get name="iteracion"/></map></set>
+    <condition name="eventos">
+      <li value="unknown">
+        <set var="iter">null</set>
+      </li>
+      <li>
+        <condition name="iteracion">
+          <li value="49"><set name="iteracion"><get var="lasti"/></set></li>
+          <li>
+            <set var="iter"><srai>TOP <get name="eventos"/></srai></set>
+            <set name="eventos"><srai>REMAIN <get name="eventos"/></srai></set>
+            <set name="iteracion"><map name="successor"><get name="iteracion"/></map></set>
+            <condition var="iter">
+              <li value="null">
+                <set var="lasti"><map name="predecessor"><get name="iteracion"/></map></set>
+                <set name="iteracion">49</set>
+              </li>
+              <li></li>
+            </condition>
+            <loop/>
+          </li>
+        </condition>
+      </li>
+    </condition>
+    <condition var="iter">
+      <li value="null">
+        <set var="hora"><map name="franjatohora"><get name="iteracion"/></map></set>
+        <condition var="hora">
+          <li value="unknown">
+            <set var="salida">No tienes huecos libres</set>
+          </li>
+          <li>
+            <set var="hora"><srai>SELECTITEM 1 in <get var="hora"/></srai>:<srai>SELECTITEM 2 in <get var="hora"/></srai></set>
+            <set var="salida">Tienes un hueco libre a las <get var="hora"/></set>
+          </li>
+        </condition>
+      </li>
+      <li>
+        <set var="salida">No tienes huecos libres</set>
+      </li>
+    </condition>
+  </think>
+  <get var="salida"/>
+</template>
+</category>
+
+<category>
+<pattern>cuando (tengo) (un) evento con * (?)</pattern>
+<template>
+  <think>
+    <set name="contacto"><star/></set>
+    <set var="apellido"><srai>ponerbarrabaja <star/></srai></set>
+    <set var="salida">No tienes ningun evento con <get name="contacto"/></set>
+    <set name="evper"><readkeys>evper</readkeys></set>
+    <set var="size"><map name="successor"><srai>count <get name="evper"/></srai></map></set>
+    <set name="i">1</set>
+    <condition name="i">
+      <li><value><get var="size"/></value></li>
+      <li>
+        <set var="obj"><srai>SELECTITEM <get name="i"/> in <get name="evper"/></srai></set>
+        <set var="date"><map name="evper"><get var="obj"/></map></set>
+        <set var="obj"><srai>quitarespacios <get var="obj"/></srai></set>
+        <set var="index"><srai>finditem <get var="apellido"/> in <get var="date"/></srai></set>
+        <condition var="index">
+          <li value="0"></li>
+          <li>
+            <set var="nombre"><srai>quitarespacios <srai>SELECTITEM <get var="index"/> in <get var="date"/></srai></srai></set>
+            <set var="fecha"><srai>SELECTITEM 1 in <get var="obj"/></srai></set>
+            <set var="hora"><srai>SELECTITEM 2 in <get var="obj"/></srai></set>
+            <set var="hora"><explode> <get var="hora"/></explode></set>
+            <set var="hora"><srai>SELECTITEM 1 in <get var="hora"/></srai><srai>SELECTITEM 2 in <get var="hora"/></srai>:<srai>SELECTITEM 3 in <get var="hora"/></srai><srai>SELECTITEM 4 in <get var="hora"/></srai></set>
+            <set var="salida">Tienes un evento con <get name="contacto"/> el <get var="fecha"/> a las <get var="hora"/></set>
+          </li>
+        </condition>
+        <set name="i"><map name="successor"><get name="i"/></map></set>
+        <loop/>
+      </li>
+    </condition>
+  </think>
+  <get var="salida"/>
+</template>
+</category>
+
+<category>
+<pattern>Alguna (otra) alternativa (?)</pattern>
+<that>Tienes un evento con *</that>
+<template>
+  <think>
+    <set var="apellido"><srai>ponerbarrabaja <get name="contacto"/></srai></set>
+    <set var="salida">No tienes ningun evento con <get name="contacto"/></set>
+    <set var="size"><map name="successor"><srai>count <get name="evper"/></srai></map></set>
+    <set var="obj"><srai>SELECTITEM <get name="i"/> in <get name="evper"/></srai></set>
+    <condition name="i">
+      <li><value><get var="size"/></value></li>
+      <li>
+        <set var="obj"><srai>SELECTITEM <get name="i"/> in <get name="evper"/></srai></set>
+        <set var="date"><map name="evper"><get var="obj"/></map></set>
+        <set var="obj"><srai>quitarespacios <get var="obj"/></srai></set>
+        <set name="i"><map name="successor"><get name="i"/></map></set>
+        <set var="index"><srai>finditem <get var="apellido"/> in <get var="date"/></srai></set>
+        <condition var="index">
+          <li value="0"></li>
+          <li>
+            <set var="nombre"><srai>quitarespacios <srai>SELECTITEM <get var="index"/> in <get var="date"/></srai></srai></set>
+            <set var="fecha"><srai>SELECTITEM 1 in <get var="obj"/></srai></set>
+            <set var="hora"><srai>SELECTITEM 2 in <get var="obj"/></srai></set>
+            <set var="hora"><explode> <get var="hora"/></explode></set>
+            <set var="hora"><srai>SELECTITEM 1 in <get var="hora"/></srai><srai>SELECTITEM 2 in <get var="hora"/></srai>:<srai>SELECTITEM 3 in <get var="hora"/></srai><srai>SELECTITEM 4 in <get var="hora"/></srai></set>
+            <set var="salida">Tienes un evento con <get name="contacto"/> el <get var="fecha"/> a las <get var="hora"/></set>
+          </li>
+        </condition>
+        <loop/>
+      </li>
+    </condition>
+  </think>
+  <get var="salida"/>
+</template>
+</category>
+
+</aiml>
